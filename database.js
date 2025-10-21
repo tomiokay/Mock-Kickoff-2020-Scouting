@@ -566,7 +566,7 @@ function drawModalFieldMap(markersJson) {
 
     // Load and draw field image
     const img = new Image();
-    img.src = 'Images/Screenshot 2025-10-20 223552.png';
+    img.src = 'Images/Field.png';
     img.onload = () => {
         // Clear and draw field
         ctx.clearRect(0, 0, canvas.width, canvas.height);

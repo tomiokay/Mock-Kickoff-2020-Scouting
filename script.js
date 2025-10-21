@@ -621,6 +621,14 @@ document.addEventListener('keydown', (e) => {
     // Only if scouting interface is visible
     if (scoutingInterface.style.display === 'none') return;
 
+    // Don't trigger shortcuts if user is typing in notes or other text fields
+    const activeElement = document.activeElement;
+    const isTyping = activeElement.tagName === 'TEXTAREA' ||
+                     activeElement.tagName === 'INPUT' ||
+                     activeElement.isContentEditable;
+
+    if (isTyping) return;
+
     // Number keys for quick scoring during appropriate periods
     if (currentPeriod === 'AUTONOMOUS') {
         switch(e.key) {

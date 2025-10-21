@@ -38,7 +38,7 @@ function initializeFieldTracking() {
 
     // Load field image
     fieldImage = new Image();
-    fieldImage.src = 'Images/Screenshot 2025-10-20 223552.png';
+    fieldImage.src = 'Images/Field.png';
     fieldImage.onload = () => {
         drawField();
     };

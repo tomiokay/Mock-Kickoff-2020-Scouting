@@ -11,7 +11,8 @@
       "Bash(git commit:*)",
       "Bash(timeout 2 bash:*)",
       "Bash(python:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
