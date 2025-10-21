@@ -97,7 +97,7 @@
                     <div class="sidebar-section auto-section" id="autoSection">
                         <h4>Autonomous</h4>
                         <button class="sidebar-action-btn auto-btn" data-action="initLine">
-                            <span class="btn-label">Init Line</span>
+                            <span class="btn-label">Cross Initiation Line</span>
                             <span class="btn-points">+5</span>
                             <span class="btn-count" id="count-initLine">0</span>
                         </button>
@@ -122,7 +122,7 @@
                     <div class="sidebar-section teleop-section" id="teleopSection" style="display: none;">
                         <h4>Teleop</h4>
                         <button class="sidebar-action-btn teleop-btn" data-action="pickupBall">
-                            <span class="btn-label">Pick Up</span>
+                            <span class="btn-label">Station Pick Up</span>
                             <span class="btn-count" id="count-pickupBall">0</span>
                         </button>
                         <button class="sidebar-action-btn teleop-btn" data-action="teleopBottomPort">
@@ -141,12 +141,12 @@
                             <span class="btn-count" id="count-teleopInnerPort">0</span>
                         </button>
                         <button class="sidebar-action-btn teleop-btn" data-action="rotationControl">
-                            <span class="btn-label">Rotation</span>
+                            <span class="btn-label">Rotation Control</span>
                             <span class="btn-points">+10</span>
                             <span class="btn-count" id="count-rotationControl">0</span>
                         </button>
                         <button class="sidebar-action-btn teleop-btn" data-action="positionControl">
-                            <span class="btn-label">Position</span>
+                            <span class="btn-label">Position Control</span>
                             <span class="btn-points">+20</span>
                             <span class="btn-count" id="count-positionControl">0</span>
                         </button>
@@ -173,11 +173,10 @@
                     </div>
 
                     <!-- Other Actions -->
-                    <div class="sidebar-section">
+                    <div class="sidebar-section" id="otherSection">
                         <h4>Other</h4>
-                        <button class="sidebar-action-btn other-btn" data-action="defense">
-                            <span class="btn-label">Defense</span>
-                            <span class="btn-count" id="count-defense">0</span>
+                        <button class="sidebar-action-btn defense-mode-btn" id="defenseMode">
+                            <span class="btn-label">🛡️ Start Defense</span>
                         </button>
                         <button class="sidebar-action-btn other-btn" data-action="penalty">
                             <span class="btn-label">Penalty</span>
@@ -186,6 +185,30 @@
                         <button class="sidebar-action-btn other-btn disabled-btn" data-action="disabled">
                             <span class="btn-label">Disabled</span>
                             <span class="btn-count" id="count-disabled">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Defense Mode Section -->
+                    <div class="sidebar-section defense-section" id="defenseSection" style="display: none;">
+                        <h4>🛡️ Defense Mode</h4>
+                        <div class="defense-timer" id="defenseTimer">
+                            <span class="defense-timer-label">Defending:</span>
+                            <span class="defense-timer-value" id="defenseTimeValue">0s</span>
+                        </div>
+                        <button class="sidebar-action-btn defense-btn" data-action="effectiveDefense">
+                            <span class="btn-label">Effective Block</span>
+                            <span class="btn-count" id="count-effectiveDefense">0</span>
+                        </button>
+                        <button class="sidebar-action-btn defense-btn" data-action="defensiveFoul">
+                            <span class="btn-label">Def. Foul</span>
+                            <span class="btn-count" id="count-defensiveFoul">0</span>
+                        </button>
+                        <button class="sidebar-action-btn defense-btn" data-action="pinned">
+                            <span class="btn-label">Pinned Opp.</span>
+                            <span class="btn-count" id="count-pinned">0</span>
+                        </button>
+                        <button class="sidebar-action-btn exit-defense-btn" id="exitDefense">
+                            <span class="btn-label">⬅️ Exit Defense</span>
                         </button>
                     </div>
                 </aside>

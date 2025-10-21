@@ -29,6 +29,12 @@ let elapsedTime = 0;
 let isPaused = false;
 let currentPeriod = 'PRE-MATCH';
 
+// Defense mode variables
+let isDefenseMode = false;
+let defenseStartTime = 0;
+let totalDefenseTime = 0;
+let defenseTimer = null;
+
 // Point values
 const POINTS = {
     initLine: 5,
@@ -89,7 +95,9 @@ function initializeCounts() {
         park: 0,
         hang: 0,
         level: 0,
-        defense: 0,
+        effectiveDefense: 0,
+        defensiveFoul: 0,
+        pinned: 0,
         penalty: 0,
         disabled: 0
     };
@@ -118,7 +126,7 @@ function setupEventListeners() {
     startMatchBtn.addEventListener('click', startMatch);
 
     // Action buttons
-    const actionButtons = document.querySelectorAll('.action-btn');
+    const actionButtons = document.querySelectorAll('.sidebar-action-btn');
     actionButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const action = btn.dataset.action;
@@ -132,6 +140,10 @@ function setupEventListeners() {
     document.getElementById('exportJSON').addEventListener('click', exportJSON);
     document.getElementById('exportCSV').addEventListener('click', exportCSV);
     document.getElementById('resetMatch').addEventListener('click', resetMatch);
+
+    // Defense mode buttons
+    document.getElementById('defenseMode').addEventListener('click', enterDefenseMode);
+    document.getElementById('exitDefense').addEventListener('click', exitDefenseMode);
 
     // Notes
     matchNotesTextarea.addEventListener('input', (e) => {
@@ -225,7 +237,7 @@ function updatePeriod() {
 
 function recordAction(action) {
     // Define toggle actions (can only be done once)
-    const toggleActions = ['initLine', 'hang', 'park', 'level'];
+    const toggleActions = ['initLine', 'hang', 'park', 'level', 'rotationControl', 'positionControl'];
     const isToggle = toggleActions.includes(action);
 
     const btn = document.querySelector(`[data-action="${action}"]`);
@@ -372,7 +384,7 @@ function formatActionName(action) {
         autoBottomPort: 'Auto - Bottom Port',
         autoOuterPort: 'Auto - Outer Port',
         autoInnerPort: 'Auto - Inner Port',
-        pickupBall: 'Picked Up Ball',
+        pickupBall: 'Station Picked Up Ball',
         teleopBottomPort: 'Teleop - Bottom Port',
         teleopOuterPort: 'Teleop - Outer Port',
         teleopInnerPort: 'Teleop - Inner Port',
@@ -381,7 +393,11 @@ function formatActionName(action) {
         park: 'Parked',
         hang: 'Hanging',
         level: 'Level Switch',
-        defense: 'Playing Defense',
+        defenseStart: 'Defense Start',
+        defenseEnd: 'Defense End',
+        effectiveDefense: 'Effective Defense',
+        defensiveFoul: 'Defensive Foul',
+        pinned: 'Pinned Opponent',
         penalty: 'Penalty/Foul',
         disabled: 'Robot Disabled'
     };
@@ -451,7 +467,8 @@ function exportJSON() {
             startingPosition: scoutingData.startingPosition,
             scoutName: scoutingData.scoutName,
             startTime: scoutingData.startTime,
-            matchDuration: elapsedTime
+            matchDuration: elapsedTime,
+            totalDefenseTime: totalDefenseTime
         },
         scores: scoutingData.scores,
         actions: scoutingData.actions,
@@ -473,7 +490,7 @@ function exportJSON() {
 function exportCSV() {
     // Create CSV header
     let csv = 'Match Number,Team Number,Alliance Color,Starting Position,Scout Name,';
-    csv += 'Auto Score,Teleop Score,Endgame Score,Total Score,';
+    csv += 'Auto Score,Teleop Score,Endgame Score,Total Score,Total Defense Time (s),';
 
     // Add count headers
     for (const action in scoutingData.counts) {
@@ -483,7 +500,7 @@ function exportCSV() {
 
     // Add data row
     csv += `${scoutingData.matchNumber},${scoutingData.teamNumber},${scoutingData.allianceColor},${scoutingData.startingPosition},${scoutingData.scoutName},`;
-    csv += `${scoutingData.scores.auto},${scoutingData.scores.teleop},${scoutingData.scores.endgame},${scoutingData.scores.total},`;
+    csv += `${scoutingData.scores.auto},${scoutingData.scores.teleop},${scoutingData.scores.endgame},${scoutingData.scores.total},${totalDefenseTime},`;
 
     // Add counts
     for (const action in scoutingData.counts) {
@@ -505,6 +522,20 @@ function resetMatch() {
     if (matchTimer) {
         clearInterval(matchTimer);
         matchTimer = null;
+    }
+
+    // Exit defense mode if active
+    if (isDefenseMode) {
+        exitDefenseMode();
+    }
+
+    // Reset defense mode variables
+    isDefenseMode = false;
+    defenseStartTime = 0;
+    totalDefenseTime = 0;
+    if (defenseTimer) {
+        clearInterval(defenseTimer);
+        defenseTimer = null;
     }
 
     // Reset all data
@@ -538,9 +569,21 @@ function resetMatch() {
     });
 
     // Remove active toggle states
-    document.querySelectorAll('.action-btn').forEach(btn => {
+    document.querySelectorAll('.sidebar-action-btn').forEach(btn => {
         btn.classList.remove('active-toggle');
+        btn.classList.remove('active-defense');
     });
+
+    // Reset defense mode button
+    const defenseModeBtn = document.getElementById('defenseMode');
+    if (defenseModeBtn) {
+        defenseModeBtn.classList.remove('active-defense');
+        defenseModeBtn.querySelector('.btn-label').textContent = '🛡️ Start Defense';
+    }
+
+    // Hide defense section
+    document.getElementById('defenseSection').style.display = 'none';
+    document.getElementById('defenseTimeValue').textContent = '0s';
 
     // Clear field markers
     if (typeof clearFieldMarkers === 'function') {
@@ -603,9 +646,125 @@ document.addEventListener('keydown', (e) => {
 
     // Always available
     switch(e.key) {
-        case 'd': recordAction('defense'); break;
         case 'f': recordAction('penalty'); break;
         case 'x': recordAction('disabled'); break;
         case ' ': e.preventDefault(); togglePause(); break;
     }
 });
+
+// ===============================================
+// DEFENSE MODE FUNCTIONALITY
+// ===============================================
+
+function enterDefenseMode() {
+    if (isDefenseMode) return; // Already in defense mode
+
+    isDefenseMode = true;
+    defenseStartTime = elapsedTime;
+
+    // Hide other sections and show defense section
+    document.getElementById('autoSection').style.display = 'none';
+    document.getElementById('teleopSection').style.display = 'none';
+    document.getElementById('endgameSection').style.display = 'none';
+    document.getElementById('otherSection').style.display = 'none';
+    document.getElementById('defenseSection').style.display = 'block';
+
+    // Update defense mode button
+    const defenseModeBtn = document.getElementById('defenseMode');
+    defenseModeBtn.classList.add('active-defense');
+    defenseModeBtn.querySelector('.btn-label').textContent = '🛡️ Defending...';
+
+    // Start defense timer
+    startDefenseTimer();
+
+    // Record defense start action
+    const actionData = {
+        action: 'defenseStart',
+        time: elapsedTime,
+        period: currentPeriod,
+        timestamp: new Date()
+    };
+    scoutingData.actions.push(actionData);
+    addToTimeline(actionData);
+}
+
+function exitDefenseMode() {
+    if (!isDefenseMode) return; // Not in defense mode
+
+    isDefenseMode = false;
+
+    // Calculate defense duration
+    const defenseDuration = elapsedTime - defenseStartTime;
+    totalDefenseTime += defenseDuration;
+
+    // Stop defense timer
+    stopDefenseTimer();
+
+    // Show appropriate period section
+    updatePeriodSections();
+    document.getElementById('otherSection').style.display = 'block';
+
+    // Update defense mode button
+    const defenseModeBtn = document.getElementById('defenseMode');
+    defenseModeBtn.classList.remove('active-defense');
+    defenseModeBtn.querySelector('.btn-label').textContent = '🛡️ Start Defense';
+
+    // Record defense end action with duration
+    const actionData = {
+        action: 'defenseEnd',
+        time: elapsedTime,
+        period: currentPeriod,
+        timestamp: new Date(),
+        duration: defenseDuration
+    };
+    scoutingData.actions.push(actionData);
+
+    const timelineItem = document.createElement('div');
+    timelineItem.className = `timeline-item ${getPeriodClass(currentPeriod)}`;
+    const minutes = Math.floor(elapsedTime / 60);
+    const seconds = elapsedTime % 60;
+    const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    timelineItem.innerHTML = `
+        <span class="timeline-time">${timeStr}</span>
+        <span class="timeline-action">Defense End (${defenseDuration}s)</span>
+    `;
+    timeline.insertBefore(timelineItem, timeline.firstChild);
+}
+
+function startDefenseTimer() {
+    const defenseTimeDisplay = document.getElementById('defenseTimeValue');
+    let currentDefenseTime = 0;
+
+    defenseTimer = setInterval(() => {
+        if (!isPaused) {
+            currentDefenseTime = elapsedTime - defenseStartTime;
+            defenseTimeDisplay.textContent = `${currentDefenseTime}s`;
+        }
+    }, 1000);
+}
+
+function stopDefenseTimer() {
+    if (defenseTimer) {
+        clearInterval(defenseTimer);
+        defenseTimer = null;
+    }
+    document.getElementById('defenseTimeValue').textContent = '0s';
+}
+
+function updatePeriodSections() {
+    // Show the correct period section based on current period
+    if (currentPeriod === 'AUTONOMOUS') {
+        document.getElementById('autoSection').style.display = 'block';
+        document.getElementById('teleopSection').style.display = 'none';
+        document.getElementById('endgameSection').style.display = 'none';
+    } else if (currentPeriod === 'TELEOP') {
+        document.getElementById('autoSection').style.display = 'none';
+        document.getElementById('teleopSection').style.display = 'block';
+        document.getElementById('endgameSection').style.display = 'none';
+    } else if (currentPeriod === 'ENDGAME') {
+        document.getElementById('autoSection').style.display = 'none';
+        document.getElementById('teleopSection').style.display = 'block';
+        document.getElementById('endgameSection').style.display = 'block';
+    }
+}

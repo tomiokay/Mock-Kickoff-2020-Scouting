@@ -108,13 +108,6 @@ function handleFieldClick(event) {
 
     fieldMarkers.push(marker);
     drawField();
-
-    // Add visual feedback
-    const canvas = event.target;
-    canvas.style.transform = 'scale(0.98)';
-    setTimeout(() => {
-        canvas.style.transform = '';
-    }, 100);
 }
 
 function drawField() {
