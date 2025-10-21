@@ -339,6 +339,29 @@ h1 {
     font-size: 1.6em;
 }
 
+.sidebar-score-item.ball-count {
+    background: rgba(255, 165, 0, 0.2);
+    border: 2px solid #ffa500;
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 10px;
+}
+
+.sidebar-score-item.ball-count .sidebar-score-value {
+    color: #ffa500;
+    font-size: 1.8em;
+}
+
+/* Miss button styling */
+.miss-btn {
+    background: rgba(255, 51, 51, 0.2) !important;
+    border-color: #ff3333 !important;
+}
+
+.miss-btn:hover {
+    background: rgba(255, 51, 51, 0.4) !important;
+}
+
 /* Sidebar Sections */
 .sidebar-section {
     margin-bottom: 20px;
@@ -501,6 +524,60 @@ h1 {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+/* Top Info Bar */
+.top-info-bar {
+    background: rgba(0, 212, 255, 0.1);
+    border: 2px solid #00d4ff;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.score-cards-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.score-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 20px;
+    text-align: center;
+    min-width: 100px;
+}
+
+.score-card.total-card {
+    background: rgba(0, 212, 255, 0.2);
+    border: 2px solid #00d4ff;
+}
+
+.score-card-label {
+    display: block;
+    font-size: 0.85em;
+    color: #aaa;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.score-card-value {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    color: #00ff88;
+    font-family: 'Courier New', monospace;
+}
+
+.score-card.total-card .score-card-value {
+    color: #00d4ff;
+    font-size: 2.2em;
 }
 
 .main-content {
@@ -742,6 +819,31 @@ h1 {
 .field-map-section h3 {
     color: #00d4ff;
     margin-bottom: 10px;
+}
+
+.ball-count-display {
+    background: rgba(255, 165, 0, 0.2);
+    border: 2px solid #ffa500;
+    border-radius: 8px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ball-count-label {
+    font-size: 1em;
+    color: #ffa500;
+    font-weight: bold;
+}
+
+.ball-count-value {
+    font-size: 1.8em;
+    color: #ffa500;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    min-width: 30px;
+    text-align: center;
 }
 
 .field-instructions {

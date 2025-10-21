@@ -62,6 +62,10 @@
                     <label for="scoutName">Scout Name:</label>
                     <input type="text" id="scoutName" placeholder="Your name">
                 </div>
+                <div class="form-group">
+                    <label for="preloadBalls">Preload Balls (0-3):</label>
+                    <input type="number" id="preloadBalls" min="0" max="3" value="0" placeholder="0">
+                </div>
                 <button class="start-match-btn" id="startMatch">Start Match</button>
             </div>
         </section>
@@ -72,26 +76,6 @@
                 <!-- Left Sidebar - Scoring Actions -->
                 <aside class="scoring-sidebar">
                     <h3>Quick Actions</h3>
-
-                    <!-- Score Display -->
-                    <div class="sidebar-score-panel">
-                        <div class="sidebar-score-item">
-                            <span class="sidebar-score-label">Auto:</span>
-                            <span class="sidebar-score-value" id="autoScore">0</span>
-                        </div>
-                        <div class="sidebar-score-item">
-                            <span class="sidebar-score-label">Teleop:</span>
-                            <span class="sidebar-score-value" id="teleopScore">0</span>
-                        </div>
-                        <div class="sidebar-score-item">
-                            <span class="sidebar-score-label">Endgame:</span>
-                            <span class="sidebar-score-value" id="endgameScore">0</span>
-                        </div>
-                        <div class="sidebar-score-item total">
-                            <span class="sidebar-score-label">Total:</span>
-                            <span class="sidebar-score-value" id="totalScore">0</span>
-                        </div>
-                    </div>
 
                     <!-- Autonomous Actions -->
                     <div class="sidebar-section auto-section" id="autoSection">
@@ -124,6 +108,10 @@
                         <button class="sidebar-action-btn teleop-btn" data-action="pickupBall">
                             <span class="btn-label">Station Pick Up</span>
                             <span class="btn-count" id="count-pickupBall">0</span>
+                        </button>
+                        <button class="sidebar-action-btn teleop-btn miss-btn" data-action="missBall">
+                            <span class="btn-label">❌ Miss Ball</span>
+                            <span class="btn-count" id="count-missBall">0</span>
                         </button>
                         <button class="sidebar-action-btn teleop-btn" data-action="teleopBottomPort">
                             <span class="btn-label">Bottom</span>
@@ -215,6 +203,32 @@
 
                 <!-- Main Center Content -->
                 <div class="center-content">
+
+                <!-- Score and Ball Count Header -->
+                <div class="top-info-bar">
+                    <div class="score-cards-container">
+                        <div class="score-card">
+                            <span class="score-card-label">Auto</span>
+                            <span class="score-card-value" id="autoScore">0</span>
+                        </div>
+                        <div class="score-card">
+                            <span class="score-card-label">Teleop</span>
+                            <span class="score-card-value" id="teleopScore">0</span>
+                        </div>
+                        <div class="score-card">
+                            <span class="score-card-label">Endgame</span>
+                            <span class="score-card-value" id="endgameScore">0</span>
+                        </div>
+                        <div class="score-card total-card">
+                            <span class="score-card-label">Total</span>
+                            <span class="score-card-value" id="totalScore">0</span>
+                        </div>
+                    </div>
+                    <div class="ball-count-display">
+                        <span class="ball-count-label">🏀 Balls:</span>
+                        <span class="ball-count-value" id="ballCount">0</span>
+                    </div>
+                </div>
 
                 <!-- Field Map Section -->
                 <div class="field-map-section">

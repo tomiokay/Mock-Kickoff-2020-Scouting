@@ -125,6 +125,20 @@ function handleFieldClick(event) {
 
     fieldMarkers.push(marker);
     drawField();
+
+    // If pickup mode, add a ball to the count
+    if (currentMode === 'pickup') {
+        if (typeof currentBallCount !== 'undefined' && typeof MAX_BALL_CAPACITY !== 'undefined') {
+            if (currentBallCount < MAX_BALL_CAPACITY) {
+                currentBallCount++;
+                if (typeof updateBallCountDisplay === 'function') {
+                    updateBallCountDisplay();
+                }
+            } else {
+                alert('⚠️ Robot is at maximum ball capacity (5 balls)!');
+            }
+        }
+    }
 }
 
 function drawField() {

@@ -14,8 +14,20 @@ const scoutingData = {
         endgame: 0,
         total: 0
     },
-    notes: ''
+    notes: '',
+    preloadBalls: 0
 };
+
+// Ball tracking
+let currentBallCount = 0;
+const MAX_BALL_CAPACITY = 5;
+
+function updateBallCountDisplay() {
+    const ballCountDisplay = document.getElementById('ballCount');
+    if (ballCountDisplay) {
+        ballCountDisplay.textContent = currentBallCount;
+    }
+}
 
 // Match timing constants (in seconds)
 const MATCH_DURATION = 150; // 2:30
@@ -87,6 +99,7 @@ function initializeCounts() {
         autoOuterPort: 0,
         autoInnerPort: 0,
         pickupBall: 0,
+        missBall: 0,
         teleopBottomPort: 0,
         teleopOuterPort: 0,
         teleopInnerPort: 0,
@@ -176,6 +189,12 @@ function startMatch() {
     scoutingData.scoutName = scoutNameInput.value || 'Anonymous';
     scoutingData.startTime = new Date();
 
+    // Get preload balls
+    const preloadInput = document.getElementById('preloadBalls');
+    scoutingData.preloadBalls = parseInt(preloadInput.value) || 0;
+    currentBallCount = scoutingData.preloadBalls;
+    updateBallCountDisplay();
+
     // Switch to scouting interface
     matchSetup.style.display = 'none';
     scoutingInterface.style.display = 'block';
@@ -236,6 +255,39 @@ function updatePeriod() {
 }
 
 function recordAction(action) {
+    // Define actions that require balls
+    const shootingActions = ['autoBottomPort', 'autoOuterPort', 'autoInnerPort',
+                            'teleopBottomPort', 'teleopOuterPort', 'teleopInnerPort'];
+
+    // Check if trying to shoot without balls
+    if (shootingActions.includes(action) && currentBallCount === 0) {
+        alert('⚠️ No balls available! Pick up a ball first.');
+        return;
+    }
+
+    // Check if trying to miss without balls
+    if (action === 'missBall' && currentBallCount === 0) {
+        alert('⚠️ No balls available! Pick up a ball first.');
+        return;
+    }
+
+    // Handle ball count changes
+    if (action === 'pickupBall') {
+        if (currentBallCount < MAX_BALL_CAPACITY) {
+            currentBallCount++;
+            updateBallCountDisplay();
+        } else {
+            alert('⚠️ Robot is at maximum ball capacity (5 balls)!');
+            return;
+        }
+    } else if (shootingActions.includes(action)) {
+        currentBallCount--;
+        updateBallCountDisplay();
+    } else if (action === 'missBall') {
+        currentBallCount--;
+        updateBallCountDisplay();
+    }
+
     // Define toggle actions (can only be done once)
     const toggleActions = ['initLine', 'hang', 'park', 'level', 'rotationControl', 'positionControl'];
     const isToggle = toggleActions.includes(action);
@@ -556,6 +608,8 @@ function resetMatch() {
     elapsedTime = 0;
     isPaused = false;
     currentPeriod = 'PRE-MATCH';
+    currentBallCount = 0;
+    updateBallCountDisplay();
 
     // Reset displays
     timerDisplay.textContent = '0:00';

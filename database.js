@@ -25,7 +25,11 @@ function initializeSupabase() {
     }
 
     try {
-        const { createClient } = supabase;
+        if (!window.supabase) {
+            console.warn('Supabase library not loaded');
+            return;
+        }
+        const { createClient } = window.supabase;
         supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         console.log('Supabase initialized successfully!');
     } catch (error) {
