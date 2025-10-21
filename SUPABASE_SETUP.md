@@ -58,6 +58,7 @@ Follow these steps to set up your Supabase database for the scouting app.
 - `disabled` (int4)
 - `notes` (text)
 - `match_duration` (int4)
+- `field_markers_json` (text) - Stores field tracking data
 
 4. Click "Save"
 
@@ -152,7 +153,8 @@ CREATE TABLE match_data (
   penalty INTEGER,
   disabled INTEGER,
   notes TEXT,
-  match_duration INTEGER
+  match_duration INTEGER,
+  field_markers_json TEXT
 );
 
 -- Enable Row Level Security

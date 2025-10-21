@@ -110,7 +110,8 @@ async function saveToDatabase() {
             penalty: scoutingData.counts.penalty,
             disabled: scoutingData.counts.disabled,
             notes: scoutingData.notes,
-            match_duration: elapsedTime
+            match_duration: elapsedTime,
+            field_markers_json: typeof getFieldMarkersData === 'function' ? JSON.stringify(getFieldMarkersData()) : null
         };
 
         const { data, error } = await supabase
@@ -404,9 +405,95 @@ function viewMatchDetails(matchId) {
                 ${match.notes}
             </div>
         ` : ''}
+
+        ${match.field_markers_json ? `
+            <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Field Tracking</h3>
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; text-align: center;">
+                <canvas id="modalFieldCanvas" width="600" height="300" style="border: 2px solid rgba(0, 212, 255, 0.5); border-radius: 8px; max-width: 100%; background: #1a1a2e;"></canvas>
+                <div style="display: flex; gap: 20px; margin-top: 15px; justify-content: center; flex-wrap: wrap;">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 12px; height: 12px; background: #00ff88; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 8px #00ff88;"></span>
+                        Ground Pickup
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 12px; height: 12px; background: #ff6b35; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 8px #ff6b35;"></span>
+                        Shooting
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 12px; height: 12px; background: #ffaa00; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 8px #ffaa00;"></span>
+                        Scoring
+                    </span>
+                </div>
+            </div>
+        ` : ''}
     `;
 
     modal.style.display = 'flex';
+
+    // Draw field map if there are markers
+    if (match.field_markers_json) {
+        setTimeout(() => drawModalFieldMap(match.field_markers_json), 100);
+    }
+}
+
+function drawModalFieldMap(markersJson) {
+    const canvas = document.getElementById('modalFieldCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const markers = JSON.parse(markersJson);
+
+    // Load and draw field image
+    const img = new Image();
+    img.src = 'Images/Screenshot 2025-10-20 223552.png';
+    img.onload = () => {
+        // Clear and draw field
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Draw markers
+        const markerColors = {
+            pickup: '#00ff88',
+            shoot: '#ff6b35',
+            score: '#ffaa00'
+        };
+
+        markers.forEach((marker, index) => {
+            const x = marker.x * canvas.width;
+            const y = marker.y * canvas.height;
+            const color = markerColors[marker.type] || '#ffffff';
+
+            // Draw glow
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = color;
+
+            // Draw marker
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Reset shadow
+            ctx.shadowBlur = 0;
+
+            // Draw number
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 8px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(index + 1, x, y);
+        });
+    };
+    img.onerror = () => {
+        // Draw placeholder
+        ctx.fillStyle = '#2a2a4e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
 }
 
 // ===============================================

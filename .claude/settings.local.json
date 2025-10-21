@@ -5,7 +5,9 @@
       "WebFetch(domain:firstfrc.blob.core.windows.net)",
       "Bash(dir /B)",
       "Bash(python -m http.server 8000)",
-      "Bash(git add .)"
+      "Bash(git add .)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd FRC 2020 Infinite Recharge scouting app with Supabase integration\n\nFeatures:\n- Complete match scouting interface with real-time timer\n- Toggle buttons for single-use actions (init line, hang, park, level)\n- Starting position selection (left/center/right)\n- Supabase database integration for cloud storage\n- Data dashboard with statistics and filtering\n- Export capabilities (JSON/CSV)\n- Match details modal view\n- Responsive design for tablets and mobile\n\nTechnical:\n- Vanilla JavaScript (no frameworks)\n- Supabase for PostgreSQL database\n- Client-side only architecture\n- Real-time score calculation\n- Action timeline tracking\n\nDocumentation:\n- QUICK_START.md for setup\n- SUPABASE_SETUP.md for database configuration\n- DATABASE_OPTIONS.md for comparison of solutions\n- PRD.md with full requirements\n- README.md with user guide\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push -u origin main)"
     ],
     "deny": [],
     "ask": []

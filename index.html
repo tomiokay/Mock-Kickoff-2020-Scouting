@@ -68,137 +68,157 @@
 
         <!-- Scouting Interface -->
         <section class="scouting-interface" id="scoutingInterface" style="display: none;">
-            <div class="main-content">
-                <!-- Score Display -->
-                <div class="score-panel">
-                    <h3>Score Tracker</h3>
-                    <div class="score-display">
-                        <div class="score-item">
-                            <span class="score-label">Auto:</span>
-                            <span class="score-value" id="autoScore">0</span>
+            <div class="scouting-layout">
+                <!-- Left Sidebar - Scoring Actions -->
+                <aside class="scoring-sidebar">
+                    <h3>Quick Actions</h3>
+
+                    <!-- Score Display -->
+                    <div class="sidebar-score-panel">
+                        <div class="sidebar-score-item">
+                            <span class="sidebar-score-label">Auto:</span>
+                            <span class="sidebar-score-value" id="autoScore">0</span>
                         </div>
-                        <div class="score-item">
-                            <span class="score-label">Teleop:</span>
-                            <span class="score-value" id="teleopScore">0</span>
+                        <div class="sidebar-score-item">
+                            <span class="sidebar-score-label">Teleop:</span>
+                            <span class="sidebar-score-value" id="teleopScore">0</span>
                         </div>
-                        <div class="score-item">
-                            <span class="score-label">Endgame:</span>
-                            <span class="score-value" id="endgameScore">0</span>
+                        <div class="sidebar-score-item">
+                            <span class="sidebar-score-label">Endgame:</span>
+                            <span class="sidebar-score-value" id="endgameScore">0</span>
                         </div>
-                        <div class="score-item total">
-                            <span class="score-label">Total:</span>
-                            <span class="score-value" id="totalScore">0</span>
+                        <div class="sidebar-score-item total">
+                            <span class="sidebar-score-label">Total:</span>
+                            <span class="sidebar-score-value" id="totalScore">0</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- Autonomous Actions -->
-                <div class="action-section auto-section" id="autoSection">
-                    <h3>Autonomous Period</h3>
-                    <div class="action-buttons">
-                        <button class="action-btn auto-btn" data-action="initLine">
-                            <span class="btn-label">Cross Init Line</span>
-                            <span class="btn-points">+5 pts</span>
+                    <!-- Autonomous Actions -->
+                    <div class="sidebar-section auto-section" id="autoSection">
+                        <h4>Autonomous</h4>
+                        <button class="sidebar-action-btn auto-btn" data-action="initLine">
+                            <span class="btn-label">Init Line</span>
+                            <span class="btn-points">+5</span>
                             <span class="btn-count" id="count-initLine">0</span>
                         </button>
-                        <button class="action-btn auto-btn" data-action="autoBottomPort">
-                            <span class="btn-label">Bottom Port</span>
-                            <span class="btn-points">+2 pts</span>
+                        <button class="sidebar-action-btn auto-btn" data-action="autoBottomPort">
+                            <span class="btn-label">Bottom</span>
+                            <span class="btn-points">+2</span>
                             <span class="btn-count" id="count-autoBottomPort">0</span>
                         </button>
-                        <button class="action-btn auto-btn" data-action="autoOuterPort">
-                            <span class="btn-label">Outer Port</span>
-                            <span class="btn-points">+4 pts</span>
+                        <button class="sidebar-action-btn auto-btn" data-action="autoOuterPort">
+                            <span class="btn-label">Outer</span>
+                            <span class="btn-points">+4</span>
                             <span class="btn-count" id="count-autoOuterPort">0</span>
                         </button>
-                        <button class="action-btn auto-btn" data-action="autoInnerPort">
-                            <span class="btn-label">Inner Port</span>
-                            <span class="btn-points">+6 pts</span>
+                        <button class="sidebar-action-btn auto-btn" data-action="autoInnerPort">
+                            <span class="btn-label">Inner</span>
+                            <span class="btn-points">+6</span>
                             <span class="btn-count" id="count-autoInnerPort">0</span>
                         </button>
                     </div>
-                </div>
 
-                <!-- Teleop Actions -->
-                <div class="action-section teleop-section" id="teleopSection" style="display: none;">
-                    <h3>Teleop Period</h3>
-                    <div class="action-buttons">
-                        <div class="button-group">
-                            <h4>Power Cells</h4>
-                            <button class="action-btn teleop-btn" data-action="pickupBall">
-                                <span class="btn-label">Pick Up Ball</span>
-                                <span class="btn-count" id="count-pickupBall">0</span>
-                            </button>
-                            <button class="action-btn teleop-btn" data-action="teleopBottomPort">
-                                <span class="btn-label">Bottom Port</span>
-                                <span class="btn-points">+1 pt</span>
-                                <span class="btn-count" id="count-teleopBottomPort">0</span>
-                            </button>
-                            <button class="action-btn teleop-btn" data-action="teleopOuterPort">
-                                <span class="btn-label">Outer Port</span>
-                                <span class="btn-points">+2 pts</span>
-                                <span class="btn-count" id="count-teleopOuterPort">0</span>
-                            </button>
-                            <button class="action-btn teleop-btn" data-action="teleopInnerPort">
-                                <span class="btn-label">Inner Port</span>
-                                <span class="btn-points">+3 pts</span>
-                                <span class="btn-count" id="count-teleopInnerPort">0</span>
-                            </button>
-                        </div>
-                        <div class="button-group">
-                            <h4>Control Panel</h4>
-                            <button class="action-btn teleop-btn" data-action="rotationControl">
-                                <span class="btn-label">Rotation Control</span>
-                                <span class="btn-points">+10 pts</span>
-                                <span class="btn-count" id="count-rotationControl">0</span>
-                            </button>
-                            <button class="action-btn teleop-btn" data-action="positionControl">
-                                <span class="btn-label">Position Control</span>
-                                <span class="btn-points">+20 pts</span>
-                                <span class="btn-count" id="count-positionControl">0</span>
-                            </button>
-                        </div>
+                    <!-- Teleop Actions -->
+                    <div class="sidebar-section teleop-section" id="teleopSection" style="display: none;">
+                        <h4>Teleop</h4>
+                        <button class="sidebar-action-btn teleop-btn" data-action="pickupBall">
+                            <span class="btn-label">Pick Up</span>
+                            <span class="btn-count" id="count-pickupBall">0</span>
+                        </button>
+                        <button class="sidebar-action-btn teleop-btn" data-action="teleopBottomPort">
+                            <span class="btn-label">Bottom</span>
+                            <span class="btn-points">+1</span>
+                            <span class="btn-count" id="count-teleopBottomPort">0</span>
+                        </button>
+                        <button class="sidebar-action-btn teleop-btn" data-action="teleopOuterPort">
+                            <span class="btn-label">Outer</span>
+                            <span class="btn-points">+2</span>
+                            <span class="btn-count" id="count-teleopOuterPort">0</span>
+                        </button>
+                        <button class="sidebar-action-btn teleop-btn" data-action="teleopInnerPort">
+                            <span class="btn-label">Inner</span>
+                            <span class="btn-points">+3</span>
+                            <span class="btn-count" id="count-teleopInnerPort">0</span>
+                        </button>
+                        <button class="sidebar-action-btn teleop-btn" data-action="rotationControl">
+                            <span class="btn-label">Rotation</span>
+                            <span class="btn-points">+10</span>
+                            <span class="btn-count" id="count-rotationControl">0</span>
+                        </button>
+                        <button class="sidebar-action-btn teleop-btn" data-action="positionControl">
+                            <span class="btn-label">Position</span>
+                            <span class="btn-points">+20</span>
+                            <span class="btn-count" id="count-positionControl">0</span>
+                        </button>
                     </div>
-                </div>
 
-                <!-- Endgame Actions -->
-                <div class="action-section endgame-section" id="endgameSection" style="display: none;">
-                    <h3>Endgame (Last 30 Seconds)</h3>
-                    <div class="action-buttons">
-                        <button class="action-btn endgame-btn" data-action="park">
+                    <!-- Endgame Actions -->
+                    <div class="sidebar-section endgame-section" id="endgameSection" style="display: none;">
+                        <h4>Endgame</h4>
+                        <button class="sidebar-action-btn endgame-btn" data-action="park">
                             <span class="btn-label">Park</span>
-                            <span class="btn-points">+5 pts</span>
+                            <span class="btn-points">+5</span>
                             <span class="btn-count" id="count-park">0</span>
                         </button>
-                        <button class="action-btn endgame-btn" data-action="hang">
-                            <span class="btn-label">Hang/Climb</span>
-                            <span class="btn-points">+25 pts</span>
+                        <button class="sidebar-action-btn endgame-btn" data-action="hang">
+                            <span class="btn-label">Hang</span>
+                            <span class="btn-points">+25</span>
                             <span class="btn-count" id="count-hang">0</span>
                         </button>
-                        <button class="action-btn endgame-btn" data-action="level">
-                            <span class="btn-label">Level Switch</span>
-                            <span class="btn-points">+15 pts</span>
+                        <button class="sidebar-action-btn endgame-btn" data-action="level">
+                            <span class="btn-label">Level</span>
+                            <span class="btn-points">+15</span>
                             <span class="btn-count" id="count-level">0</span>
                         </button>
                     </div>
-                </div>
 
-                <!-- Other Actions -->
-                <div class="action-section other-section">
-                    <h3>Other Actions</h3>
-                    <div class="action-buttons">
-                        <button class="action-btn other-btn" data-action="defense">
-                            <span class="btn-label">Playing Defense</span>
+                    <!-- Other Actions -->
+                    <div class="sidebar-section">
+                        <h4>Other</h4>
+                        <button class="sidebar-action-btn other-btn" data-action="defense">
+                            <span class="btn-label">Defense</span>
                             <span class="btn-count" id="count-defense">0</span>
                         </button>
-                        <button class="action-btn other-btn" data-action="penalty">
-                            <span class="btn-label">Penalty/Foul</span>
+                        <button class="sidebar-action-btn other-btn" data-action="penalty">
+                            <span class="btn-label">Penalty</span>
                             <span class="btn-count" id="count-penalty">0</span>
                         </button>
-                        <button class="action-btn other-btn disabled-btn" data-action="disabled">
-                            <span class="btn-label">Robot Disabled</span>
+                        <button class="sidebar-action-btn other-btn disabled-btn" data-action="disabled">
+                            <span class="btn-label">Disabled</span>
                             <span class="btn-count" id="count-disabled">0</span>
                         </button>
+                    </div>
+                </aside>
+
+                <!-- Main Center Content -->
+                <div class="center-content">
+
+                <!-- Field Map Section -->
+                <div class="field-map-section">
+                    <h3>Field Tracking</h3>
+                    <p class="field-instructions">Click on the field to mark where the robot performs actions</p>
+
+                    <div class="field-mode-selector">
+                        <button class="mode-btn active" data-mode="pickup">
+                            📍 Ground Pickup
+                        </button>
+                        <button class="mode-btn" data-mode="shoot">
+                            🎯 Shooting Position
+                        </button>
+                        <button class="mode-btn clear-mode" id="clearLastMarker">
+                            ↶ Undo Last
+                        </button>
+                        <button class="mode-btn clear-mode" id="clearAllMarkers">
+                            🗑️ Clear All
+                        </button>
+                    </div>
+
+                    <div class="field-map-container">
+                        <canvas id="fieldCanvas" width="800" height="400"></canvas>
+                        <div class="field-legend">
+                            <span class="legend-item"><span class="marker pickup-marker"></span> Ground Pickup</span>
+                            <span class="legend-item"><span class="marker shoot-marker"></span> Shooting Position</span>
+                        </div>
                     </div>
                 </div>
 
@@ -339,6 +359,7 @@
     </div>
 
     <script src="config.js"></script>
+    <script src="fieldTracking.js"></script>
     <script src="database.js"></script>
     <script src="script.js"></script>
 </body>

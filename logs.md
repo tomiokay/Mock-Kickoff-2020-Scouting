@@ -269,3 +269,103 @@ These actions can only physically happen once per match in FRC. A robot either c
 3. Add credentials to config.js
 4. Start scouting with database!
 
+---
+
+### 2025-10-20 - Interactive Field Tracking
+
+**Major Feature:** Added visual field tracking for robot positions!
+
+**New Features:**
+
+1. **Interactive Field Map**
+   - Live field image from Images folder
+   - Click to mark positions on the field
+   - Three tracking modes:
+     - 📍 Ground Pickup (green markers)
+     - 🎯 Shooting Location (orange markers)
+     - ⚡ Scoring Location (yellow markers)
+
+2. **Field Map Controls**
+   - Switch between tracking modes with buttons
+   - Undo last marker
+   - Clear all markers
+   - Numbered markers for sequence tracking
+
+3. **Visual Markers**
+   - Color-coded by action type
+   - Glowing effect for visibility
+   - Sequential numbering
+   - Stored with timestamps
+
+4. **Data Storage**
+   - Field markers saved to database
+   - Normalized coordinates (0-1 range)
+   - JSON format for flexibility
+   - Included in exports
+
+5. **Dashboard Visualization**
+   - Field map shows in match details modal
+   - Replay robot movement patterns
+   - Analyze pickup and shooting zones
+   - Heat map capabilities
+
+**How It Works:**
+
+**During Scouting:**
+1. Select mode (Pickup/Shoot/Score)
+2. Click on field where action occurred
+3. Marker appears with number
+4. Repeat for all field actions
+5. All markers saved with match data
+
+**In Dashboard:**
+1. Click any match to view details
+2. Scroll to "Field Tracking" section
+3. See all markers overlaid on field
+4. Analyze robot patterns
+
+**Technical Details:**
+- Canvas-based rendering
+- Responsive to screen size
+- Normalized coordinates for different displays
+- Field image loaded dynamically
+- Markers persist across sessions
+
+**Use Cases:**
+- Identify preferred pickup locations
+- Analyze shooting range and accuracy
+- Scout robot mobility patterns
+- Strategic field positioning analysis
+- Team comparison heat maps
+
+**Files Created:**
+- `fieldTracking.js` - Complete field tracking system
+
+**Files Modified:**
+- `index.html` - Added field map section with canvas
+- `styles.css` - Field map styling and markers
+- `script.js` - Export field markers, reset functionality
+- `database.js` - Save and display field markers
+- `SUPABASE_SETUP.md` - Added field_markers_json column
+- `logs.md` - This entry
+
+**Database Schema Update:**
+Added `field_markers_json` (TEXT) column to store array of marker objects:
+```json
+[
+  {
+    "type": "pickup",
+    "x": 0.25,
+    "y": 0.75,
+    "time": 45
+  }
+]
+```
+
+**Benefits:**
+- Visual analysis beyond numbers
+- Pattern recognition
+- Strategic insights
+- Team strengths identification
+- Heat map generation potential
+

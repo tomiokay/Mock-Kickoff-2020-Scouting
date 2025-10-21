@@ -456,6 +456,7 @@ function exportJSON() {
         scores: scoutingData.scores,
         actions: scoutingData.actions,
         counts: scoutingData.counts,
+        fieldMarkers: typeof getFieldMarkersData === 'function' ? getFieldMarkersData() : [],
         notes: scoutingData.notes
     };
 
@@ -540,6 +541,11 @@ function resetMatch() {
     document.querySelectorAll('.action-btn').forEach(btn => {
         btn.classList.remove('active-toggle');
     });
+
+    // Clear field markers
+    if (typeof clearFieldMarkers === 'function') {
+        clearFieldMarkers();
+    }
 
     // Reset buttons
     document.getElementById('endMatch').disabled = false;
