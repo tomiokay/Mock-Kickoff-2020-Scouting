@@ -1,0 +1,580 @@
+// ===============================================
+// DATABASE AND DASHBOARD FUNCTIONALITY
+// ===============================================
+
+// Initialize Supabase Client
+let supabase = null;
+let allMatchData = [];
+
+// Initialize when DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSupabase();
+    setupNavigationTabs();
+    setupDashboardEventListeners();
+});
+
+function initializeSupabase() {
+    if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
+        console.warn('Supabase not configured. Please set up config.js');
+        return;
+    }
+
+    if (SUPABASE_URL.includes('YOUR_SUPABASE_URL_HERE') || SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY_HERE')) {
+        console.warn('Supabase credentials not set. Please follow SUPABASE_SETUP.md');
+        return;
+    }
+
+    try {
+        const { createClient } = supabase;
+        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase initialized successfully!');
+    } catch (error) {
+        console.error('Error initializing Supabase:', error);
+    }
+}
+
+// ===============================================
+// NAVIGATION
+// ===============================================
+
+function setupNavigationTabs() {
+    const navTabs = document.querySelectorAll('.nav-tab');
+    const scoutView = document.getElementById('scoutView');
+    const dashboardView = document.getElementById('dashboardView');
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    navTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const view = tab.dataset.view;
+
+            // Update active tab
+            navTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Switch views
+            if (view === 'scout') {
+                scoutView.classList.add('active-view');
+                dashboardView.classList.remove('active-view');
+                timerDisplay.style.display = 'flex';
+            } else if (view === 'dashboard') {
+                scoutView.classList.remove('active-view');
+                dashboardView.classList.add('active-view');
+                timerDisplay.style.display = 'none';
+                loadDashboardData();
+            }
+        });
+    });
+}
+
+// ===============================================
+// SAVE TO DATABASE
+// ===============================================
+
+async function saveToDatabase() {
+    if (!supabase) {
+        alert('Database not configured. Please set up Supabase in config.js');
+        return;
+    }
+
+    // Validate that match has data
+    if (!scoutingData.teamNumber || !scoutingData.matchNumber) {
+        alert('Please complete match setup before saving');
+        return;
+    }
+
+    try {
+        const dataToSave = {
+            team_number: parseInt(scoutingData.teamNumber),
+            match_number: parseInt(scoutingData.matchNumber),
+            alliance_color: scoutingData.allianceColor,
+            starting_position: scoutingData.startingPosition,
+            scout_name: scoutingData.scoutName || 'Anonymous',
+            auto_score: scoutingData.scores.auto,
+            teleop_score: scoutingData.scores.teleop,
+            endgame_score: scoutingData.scores.endgame,
+            total_score: scoutingData.scores.total,
+            crossed_init_line: scoutingData.counts.initLine > 0,
+            auto_bottom_port: scoutingData.counts.autoBottomPort,
+            auto_outer_port: scoutingData.counts.autoOuterPort,
+            auto_inner_port: scoutingData.counts.autoInnerPort,
+            pickup_ball: scoutingData.counts.pickupBall,
+            teleop_bottom_port: scoutingData.counts.teleopBottomPort,
+            teleop_outer_port: scoutingData.counts.teleopOuterPort,
+            teleop_inner_port: scoutingData.counts.teleopInnerPort,
+            rotation_control: scoutingData.counts.rotationControl,
+            position_control: scoutingData.counts.positionControl,
+            park: scoutingData.counts.park > 0,
+            hang: scoutingData.counts.hang > 0,
+            level: scoutingData.counts.level > 0,
+            defense: scoutingData.counts.defense,
+            penalty: scoutingData.counts.penalty,
+            disabled: scoutingData.counts.disabled,
+            notes: scoutingData.notes,
+            match_duration: elapsedTime
+        };
+
+        const { data, error } = await supabase
+            .from('match_data')
+            .insert([dataToSave])
+            .select();
+
+        if (error) throw error;
+
+        alert('✅ Match data saved to database successfully!');
+        console.log('Saved data:', data);
+
+    } catch (error) {
+        console.error('Error saving to database:', error);
+        alert('❌ Error saving to database: ' + error.message);
+    }
+}
+
+// ===============================================
+// LOAD DASHBOARD DATA
+// ===============================================
+
+async function loadDashboardData(filters = {}) {
+    if (!supabase) {
+        console.warn('Supabase not configured');
+        return;
+    }
+
+    try {
+        let query = supabase
+            .from('match_data')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        // Apply filters
+        if (filters.team) {
+            query = query.eq('team_number', parseInt(filters.team));
+        }
+        if (filters.match) {
+            query = query.eq('match_number', parseInt(filters.match));
+        }
+        if (filters.alliance) {
+            query = query.eq('alliance_color', filters.alliance);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        allMatchData = data || [];
+        displayDashboardData(allMatchData);
+        updateStatistics(allMatchData);
+
+    } catch (error) {
+        console.error('Error loading data:', error);
+        alert('Error loading data: ' + error.message);
+    }
+}
+
+// ===============================================
+// DISPLAY DATA IN TABLE
+// ===============================================
+
+function displayDashboardData(data) {
+    const tableBody = document.getElementById('dataTableBody');
+    const dataCount = document.getElementById('dataCount');
+
+    dataCount.textContent = data.length;
+
+    if (data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="11" style="text-align: center; padding: 40px;">
+                    No data found. ${allMatchData.length > 0 ? 'Try clearing filters.' : 'Start scouting to see data here!'}
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tableBody.innerHTML = data.map(match => {
+        const date = new Date(match.created_at).toLocaleDateString();
+        const allianceClass = match.alliance_color === 'red' ? 'alliance-red' : 'alliance-blue';
+
+        return `
+            <tr data-match-id="${match.id}">
+                <td>${match.match_number}</td>
+                <td><strong>${match.team_number}</strong></td>
+                <td class="${allianceClass}">${match.alliance_color.toUpperCase()}</td>
+                <td>${match.starting_position}</td>
+                <td>${match.auto_score}</td>
+                <td>${match.teleop_score}</td>
+                <td>${match.endgame_score}</td>
+                <td><strong>${match.total_score}</strong></td>
+                <td>${match.scout_name}</td>
+                <td>${date}</td>
+                <td class="row-actions">
+                    <button class="action-icon-btn view-btn" onclick="viewMatchDetails(${match.id})">👁️ View</button>
+                    <button class="action-icon-btn delete-btn" onclick="deleteMatch(${match.id})">🗑️</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Add click event to rows
+    const rows = tableBody.querySelectorAll('tr[data-match-id]');
+    rows.forEach(row => {
+        row.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+                const matchId = parseInt(row.dataset.matchId);
+                viewMatchDetails(matchId);
+            }
+        });
+    });
+}
+
+// ===============================================
+// STATISTICS
+// ===============================================
+
+function updateStatistics(data) {
+    const totalMatches = data.length;
+    const uniqueTeams = new Set(data.map(m => m.team_number)).size;
+
+    const avgAuto = totalMatches > 0
+        ? Math.round(data.reduce((sum, m) => sum + (m.auto_score || 0), 0) / totalMatches)
+        : 0;
+
+    const avgTeleop = totalMatches > 0
+        ? Math.round(data.reduce((sum, m) => sum + (m.teleop_score || 0), 0) / totalMatches)
+        : 0;
+
+    const avgEndgame = totalMatches > 0
+        ? Math.round(data.reduce((sum, m) => sum + (m.endgame_score || 0), 0) / totalMatches)
+        : 0;
+
+    const avgTotal = totalMatches > 0
+        ? Math.round(data.reduce((sum, m) => sum + (m.total_score || 0), 0) / totalMatches)
+        : 0;
+
+    document.getElementById('statTotalMatches').textContent = totalMatches;
+    document.getElementById('statTotalTeams').textContent = uniqueTeams;
+    document.getElementById('statAvgAuto').textContent = avgAuto;
+    document.getElementById('statAvgTeleop').textContent = avgTeleop;
+    document.getElementById('statAvgEndgame').textContent = avgEndgame;
+    document.getElementById('statAvgTotal').textContent = avgTotal;
+}
+
+// ===============================================
+// VIEW MATCH DETAILS
+// ===============================================
+
+function viewMatchDetails(matchId) {
+    const match = allMatchData.find(m => m.id === matchId);
+    if (!match) return;
+
+    const modal = document.getElementById('matchDetailsModal');
+    const content = document.getElementById('matchDetailsContent');
+
+    content.innerHTML = `
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Match Number</span>
+                <span class="detail-value">${match.match_number}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Team Number</span>
+                <span class="detail-value">${match.team_number}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Alliance</span>
+                <span class="detail-value">${match.alliance_color.toUpperCase()}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Starting Position</span>
+                <span class="detail-value">${match.starting_position}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Scout</span>
+                <span class="detail-value">${match.scout_name}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Match Duration</span>
+                <span class="detail-value">${match.match_duration}s</span>
+            </div>
+        </div>
+
+        <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Scores</h3>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Auto Score</span>
+                <span class="detail-value">${match.auto_score}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Teleop Score</span>
+                <span class="detail-value">${match.teleop_score}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Endgame Score</span>
+                <span class="detail-value">${match.endgame_score}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Total Score</span>
+                <span class="detail-value">${match.total_score}</span>
+            </div>
+        </div>
+
+        <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Autonomous</h3>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Crossed Init Line</span>
+                <span class="detail-value">${match.crossed_init_line ? '✓ Yes' : '✗ No'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Bottom Port</span>
+                <span class="detail-value">${match.auto_bottom_port}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Outer Port</span>
+                <span class="detail-value">${match.auto_outer_port}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Inner Port</span>
+                <span class="detail-value">${match.auto_inner_port}</span>
+            </div>
+        </div>
+
+        <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Teleop</h3>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Balls Picked Up</span>
+                <span class="detail-value">${match.pickup_ball}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Bottom Port</span>
+                <span class="detail-value">${match.teleop_bottom_port}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Outer Port</span>
+                <span class="detail-value">${match.teleop_outer_port}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Inner Port</span>
+                <span class="detail-value">${match.teleop_inner_port}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Rotation Control</span>
+                <span class="detail-value">${match.rotation_control}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Position Control</span>
+                <span class="detail-value">${match.position_control}</span>
+            </div>
+        </div>
+
+        <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Endgame</h3>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Parked</span>
+                <span class="detail-value">${match.park ? '✓ Yes' : '✗ No'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Hanging</span>
+                <span class="detail-value">${match.hang ? '✓ Yes' : '✗ No'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Level Switch</span>
+                <span class="detail-value">${match.level ? '✓ Yes' : '✗ No'}</span>
+            </div>
+        </div>
+
+        <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Other</h3>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Defense</span>
+                <span class="detail-value">${match.defense}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Penalties</span>
+                <span class="detail-value">${match.penalty}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Disabled</span>
+                <span class="detail-value">${match.disabled}</span>
+            </div>
+        </div>
+
+        ${match.notes ? `
+            <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Notes</h3>
+            <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px;">
+                ${match.notes}
+            </div>
+        ` : ''}
+    `;
+
+    modal.style.display = 'flex';
+}
+
+// ===============================================
+// DELETE MATCH
+// ===============================================
+
+async function deleteMatch(matchId) {
+    if (!confirm('Are you sure you want to delete this match data?')) {
+        return;
+    }
+
+    try {
+        const { error } = await supabase
+            .from('match_data')
+            .delete()
+            .eq('id', matchId);
+
+        if (error) throw error;
+
+        alert('✅ Match deleted successfully');
+        loadDashboardData();
+
+    } catch (error) {
+        console.error('Error deleting match:', error);
+        alert('❌ Error deleting match: ' + error.message);
+    }
+}
+
+// ===============================================
+// DASHBOARD EVENT LISTENERS
+// ===============================================
+
+function setupDashboardEventListeners() {
+    // Save to database button
+    const saveBtn = document.getElementById('saveToDatabase');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveToDatabase);
+    }
+
+    // Refresh data
+    const refreshBtn = document.getElementById('refreshData');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => loadDashboardData());
+    }
+
+    // Apply filters
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            const filters = {
+                team: document.getElementById('filterTeam').value,
+                match: document.getElementById('filterMatch').value,
+                alliance: document.getElementById('filterAlliance').value
+            };
+            loadDashboardData(filters);
+        });
+    }
+
+    // Clear filters
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            document.getElementById('filterTeam').value = '';
+            document.getElementById('filterMatch').value = '';
+            document.getElementById('filterAlliance').value = '';
+            loadDashboardData();
+        });
+    }
+
+    // Export all CSV
+    const exportAllCSVBtn = document.getElementById('exportAllCSV');
+    if (exportAllCSVBtn) {
+        exportAllCSVBtn.addEventListener('click', exportAllDataCSV);
+    }
+
+    // Export all JSON
+    const exportAllJSONBtn = document.getElementById('exportAllJSON');
+    if (exportAllJSONBtn) {
+        exportAllJSONBtn.addEventListener('click', exportAllDataJSON);
+    }
+
+    // Clear all data
+    const clearAllBtn = document.getElementById('clearAllData');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', clearAllData);
+    }
+
+    // Close modal
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            document.getElementById('matchDetailsModal').style.display = 'none';
+        });
+    }
+
+    // Close modal on outside click
+    const modal = document.getElementById('matchDetailsModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+}
+
+// ===============================================
+// EXPORT FUNCTIONS
+// ===============================================
+
+function exportAllDataCSV() {
+    if (allMatchData.length === 0) {
+        alert('No data to export');
+        return;
+    }
+
+    let csv = 'Match,Team,Alliance,Position,Scout,Auto,Teleop,Endgame,Total,Init Line,Auto Bottom,Auto Outer,Auto Inner,Pickup,Teleop Bottom,Teleop Outer,Teleop Inner,Rotation,Position Ctrl,Park,Hang,Level,Defense,Penalty,Disabled,Notes,Date\n';
+
+    allMatchData.forEach(m => {
+        csv += `${m.match_number},${m.team_number},${m.alliance_color},${m.starting_position},${m.scout_name},${m.auto_score},${m.teleop_score},${m.endgame_score},${m.total_score},${m.crossed_init_line},${m.auto_bottom_port},${m.auto_outer_port},${m.auto_inner_port},${m.pickup_ball},${m.teleop_bottom_port},${m.teleop_outer_port},${m.teleop_inner_port},${m.rotation_control},${m.position_control},${m.park},${m.hang},${m.level},${m.defense},${m.penalty},${m.disabled},"${(m.notes || '').replace(/"/g, '""')}",${new Date(m.created_at).toLocaleString()}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scouting-data-all-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function exportAllDataJSON() {
+    if (allMatchData.length === 0) {
+        alert('No data to export');
+        return;
+    }
+
+    const json = JSON.stringify(allMatchData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scouting-data-all-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+async function clearAllData() {
+    const confirmed = prompt('⚠️ WARNING: This will delete ALL scouting data from the database!\n\nType "DELETE ALL" to confirm:');
+
+    if (confirmed !== 'DELETE ALL') {
+        alert('Cancelled - no data was deleted');
+        return;
+    }
+
+    try {
+        const { error } = await supabase
+            .from('match_data')
+            .delete()
+            .neq('id', 0); // Delete all rows
+
+        if (error) throw error;
+
+        alert('✅ All data has been deleted');
+        loadDashboardData();
+
+    } catch (error) {
+        console.error('Error clearing data:', error);
+        alert('❌ Error clearing data: ' + error.message);
+    }
+}

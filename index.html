@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRC 2020 Infinite Recharge - Scouting App</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FRC 2020 Infinite Recharge Scouting</h1>
+
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-view="scout">Scout Match</button>
+                <button class="nav-tab" data-view="dashboard">Data Dashboard</button>
+            </nav>
+
+            <div class="timer-display" id="timerDisplay">
+                <div class="period-indicator">
+                    <span id="period">PRE-MATCH</span>
+                </div>
+                <div class="time-display">
+                    <span id="timer">0:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Scout View -->
+        <div id="scoutView" class="view-container active-view">
+            <!-- Match Setup Section -->
+            <section class="match-setup" id="matchSetup">
+            <h2>Match Setup</h2>
+            <div class="setup-form">
+                <div class="form-group">
+                    <label for="teamNumber">Team Number:</label>
+                    <input type="number" id="teamNumber" placeholder="e.g., 254" required>
+                </div>
+                <div class="form-group">
+                    <label for="matchNumber">Match Number:</label>
+                    <input type="number" id="matchNumber" placeholder="e.g., 42" required>
+                </div>
+                <div class="form-group">
+                    <label>Alliance Color:</label>
+                    <div class="alliance-buttons">
+                        <button class="alliance-btn red" data-color="red">Red</button>
+                        <button class="alliance-btn blue" data-color="blue">Blue</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Starting Position:</label>
+                    <div class="position-buttons">
+                        <button class="position-btn" data-position="left">Left</button>
+                        <button class="position-btn" data-position="center">Center</button>
+                        <button class="position-btn" data-position="right">Right</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="scoutName">Scout Name:</label>
+                    <input type="text" id="scoutName" placeholder="Your name">
+                </div>
+                <button class="start-match-btn" id="startMatch">Start Match</button>
+            </div>
+        </section>
+
+        <!-- Scouting Interface -->
+        <section class="scouting-interface" id="scoutingInterface" style="display: none;">
+            <div class="main-content">
+                <!-- Score Display -->
+                <div class="score-panel">
+                    <h3>Score Tracker</h3>
+                    <div class="score-display">
+                        <div class="score-item">
+                            <span class="score-label">Auto:</span>
+                            <span class="score-value" id="autoScore">0</span>
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">Teleop:</span>
+                            <span class="score-value" id="teleopScore">0</span>
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">Endgame:</span>
+                            <span class="score-value" id="endgameScore">0</span>
+                        </div>
+                        <div class="score-item total">
+                            <span class="score-label">Total:</span>
+                            <span class="score-value" id="totalScore">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Autonomous Actions -->
+                <div class="action-section auto-section" id="autoSection">
+                    <h3>Autonomous Period</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn auto-btn" data-action="initLine">
+                            <span class="btn-label">Cross Init Line</span>
+                            <span class="btn-points">+5 pts</span>
+                            <span class="btn-count" id="count-initLine">0</span>
+                        </button>
+                        <button class="action-btn auto-btn" data-action="autoBottomPort">
+                            <span class="btn-label">Bottom Port</span>
+                            <span class="btn-points">+2 pts</span>
+                            <span class="btn-count" id="count-autoBottomPort">0</span>
+                        </button>
+                        <button class="action-btn auto-btn" data-action="autoOuterPort">
+                            <span class="btn-label">Outer Port</span>
+                            <span class="btn-points">+4 pts</span>
+                            <span class="btn-count" id="count-autoOuterPort">0</span>
+                        </button>
+                        <button class="action-btn auto-btn" data-action="autoInnerPort">
+                            <span class="btn-label">Inner Port</span>
+                            <span class="btn-points">+6 pts</span>
+                            <span class="btn-count" id="count-autoInnerPort">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Teleop Actions -->
+                <div class="action-section teleop-section" id="teleopSection" style="display: none;">
+                    <h3>Teleop Period</h3>
+                    <div class="action-buttons">
+                        <div class="button-group">
+                            <h4>Power Cells</h4>
+                            <button class="action-btn teleop-btn" data-action="pickupBall">
+                                <span class="btn-label">Pick Up Ball</span>
+                                <span class="btn-count" id="count-pickupBall">0</span>
+                            </button>
+                            <button class="action-btn teleop-btn" data-action="teleopBottomPort">
+                                <span class="btn-label">Bottom Port</span>
+                                <span class="btn-points">+1 pt</span>
+                                <span class="btn-count" id="count-teleopBottomPort">0</span>
+                            </button>
+                            <button class="action-btn teleop-btn" data-action="teleopOuterPort">
+                                <span class="btn-label">Outer Port</span>
+                                <span class="btn-points">+2 pts</span>
+                                <span class="btn-count" id="count-teleopOuterPort">0</span>
+                            </button>
+                            <button class="action-btn teleop-btn" data-action="teleopInnerPort">
+                                <span class="btn-label">Inner Port</span>
+                                <span class="btn-points">+3 pts</span>
+                                <span class="btn-count" id="count-teleopInnerPort">0</span>
+                            </button>
+                        </div>
+                        <div class="button-group">
+                            <h4>Control Panel</h4>
+                            <button class="action-btn teleop-btn" data-action="rotationControl">
+                                <span class="btn-label">Rotation Control</span>
+                                <span class="btn-points">+10 pts</span>
+                                <span class="btn-count" id="count-rotationControl">0</span>
+                            </button>
+                            <button class="action-btn teleop-btn" data-action="positionControl">
+                                <span class="btn-label">Position Control</span>
+                                <span class="btn-points">+20 pts</span>
+                                <span class="btn-count" id="count-positionControl">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Endgame Actions -->
+                <div class="action-section endgame-section" id="endgameSection" style="display: none;">
+                    <h3>Endgame (Last 30 Seconds)</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn endgame-btn" data-action="park">
+                            <span class="btn-label">Park</span>
+                            <span class="btn-points">+5 pts</span>
+                            <span class="btn-count" id="count-park">0</span>
+                        </button>
+                        <button class="action-btn endgame-btn" data-action="hang">
+                            <span class="btn-label">Hang/Climb</span>
+                            <span class="btn-points">+25 pts</span>
+                            <span class="btn-count" id="count-hang">0</span>
+                        </button>
+                        <button class="action-btn endgame-btn" data-action="level">
+                            <span class="btn-label">Level Switch</span>
+                            <span class="btn-points">+15 pts</span>
+                            <span class="btn-count" id="count-level">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Other Actions -->
+                <div class="action-section other-section">
+                    <h3>Other Actions</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn other-btn" data-action="defense">
+                            <span class="btn-label">Playing Defense</span>
+                            <span class="btn-count" id="count-defense">0</span>
+                        </button>
+                        <button class="action-btn other-btn" data-action="penalty">
+                            <span class="btn-label">Penalty/Foul</span>
+                            <span class="btn-count" id="count-penalty">0</span>
+                        </button>
+                        <button class="action-btn other-btn disabled-btn" data-action="disabled">
+                            <span class="btn-label">Robot Disabled</span>
+                            <span class="btn-count" id="count-disabled">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="notes-section">
+                    <h3>Match Notes</h3>
+                    <textarea id="matchNotes" placeholder="Enter observations, strategy notes, robot performance details..."></textarea>
+                </div>
+
+                <!-- Action Timeline -->
+                <div class="timeline-section">
+                    <h3>Action Timeline</h3>
+                    <div class="timeline" id="timeline"></div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="control-buttons">
+                    <button class="control-btn" id="pauseMatch">Pause</button>
+                    <button class="control-btn" id="endMatch">End Match</button>
+                    <button class="control-btn save-btn" id="saveToDatabase">💾 Save to Database</button>
+                    <button class="control-btn" id="exportJSON">Export JSON</button>
+                    <button class="control-btn" id="exportCSV">Export CSV</button>
+                    <button class="control-btn reset-btn" id="resetMatch">New Match</button>
+                </div>
+            </div>
+        </section>
+        </div>
+        <!-- End Scout View -->
+
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view-container">
+            <section class="dashboard-section">
+                <h2>Data Dashboard</h2>
+
+                <!-- Dashboard Controls -->
+                <div class="dashboard-controls">
+                    <button class="control-btn" id="refreshData">🔄 Refresh Data</button>
+                    <button class="control-btn" id="exportAllCSV">📊 Export All CSV</button>
+                    <button class="control-btn" id="exportAllJSON">📦 Export All JSON</button>
+                    <button class="control-btn" id="clearAllData">🗑️ Clear All Data</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="dashboard-filters">
+                    <div class="filter-group">
+                        <label for="filterTeam">Filter by Team:</label>
+                        <input type="number" id="filterTeam" placeholder="Team #">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterMatch">Filter by Match:</label>
+                        <input type="number" id="filterMatch" placeholder="Match #">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterAlliance">Filter by Alliance:</label>
+                        <select id="filterAlliance">
+                            <option value="">All</option>
+                            <option value="red">Red</option>
+                            <option value="blue">Blue</option>
+                        </select>
+                    </div>
+                    <button class="control-btn" id="applyFilters">Apply Filters</button>
+                    <button class="control-btn reset-btn" id="clearFilters">Clear Filters</button>
+                </div>
+
+                <!-- Statistics Summary -->
+                <div class="stats-summary">
+                    <h3>Statistics Summary</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Total Matches</span>
+                            <span class="stat-value" id="statTotalMatches">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Teams Scouted</span>
+                            <span class="stat-value" id="statTotalTeams">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Avg Auto Score</span>
+                            <span class="stat-value" id="statAvgAuto">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Avg Teleop Score</span>
+                            <span class="stat-value" id="statAvgTeleop">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Avg Endgame Score</span>
+                            <span class="stat-value" id="statAvgEndgame">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Avg Total Score</span>
+                            <span class="stat-value" id="statAvgTotal">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="data-table-container">
+                    <h3>Match Data (<span id="dataCount">0</span> records)</h3>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Match</th>
+                                    <th>Team</th>
+                                    <th>Alliance</th>
+                                    <th>Position</th>
+                                    <th>Auto</th>
+                                    <th>Teleop</th>
+                                    <th>Endgame</th>
+                                    <th>Total</th>
+                                    <th>Scout</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                                <tr>
+                                    <td colspan="11" style="text-align: center; padding: 40px;">
+                                        No data yet. Start scouting to see data here!
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Match Details Modal -->
+                <div class="modal" id="matchDetailsModal" style="display: none;">
+                    <div class="modal-content">
+                        <span class="modal-close" id="closeModal">&times;</span>
+                        <h2>Match Details</h2>
+                        <div id="matchDetailsContent"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- End Dashboard View -->
+    </div>
+
+    <script src="config.js"></script>
+    <script src="database.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

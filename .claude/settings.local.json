@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:firstfrc.blob.core.windows.net)",
+      "Bash(dir /B)",
+      "Bash(python -m http.server 8000)",
+      "Bash(git add .)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
