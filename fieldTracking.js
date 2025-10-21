@@ -16,6 +16,12 @@ const MARKER_COLORS = {
     score: '#ffaa00'
 };
 
+// Power port location (normalized coordinates on field - center of field)
+const POWER_PORT = {
+    x: 0.5,  // Center horizontally
+    y: 0.5   // Center vertically
+};
+
 // Initialize field tracking when DOM loads
 document.addEventListener('DOMContentLoaded', () => {
     initializeFieldTracking();
@@ -95,6 +101,16 @@ function handleFieldClick(event) {
     const normalizedX = x / fieldCanvas.width;
     const normalizedY = y / fieldCanvas.height;
 
+    // Calculate distance if shooting marker
+    let distance = 0;
+    if (currentMode === 'shoot') {
+        // Calculate distance from shooting position to power port
+        const dx = normalizedX - POWER_PORT.x;
+        const dy = normalizedY - POWER_PORT.y;
+        // Normalize distance (0-1 range represents field dimensions)
+        distance = Math.sqrt(dx * dx + dy * dy);
+    }
+
     // Add marker
     const marker = {
         x: x,
@@ -103,7 +119,8 @@ function handleFieldClick(event) {
         normalizedY: normalizedY,
         type: currentMode,
         timestamp: new Date().toISOString(),
-        time: elapsedTime
+        time: elapsedTime,
+        distance: distance
     };
 
     fieldMarkers.push(marker);
@@ -165,8 +182,22 @@ function getFieldMarkersData() {
         type: marker.type,
         x: marker.normalizedX,
         y: marker.normalizedY,
-        time: marker.time
+        time: marker.time,
+        distance: marker.distance || 0
     }));
+}
+
+function getMaxShootingDistance() {
+    const shootMarkers = fieldMarkers.filter(m => m.type === 'shoot');
+    if (shootMarkers.length === 0) return 0;
+    return Math.max(...shootMarkers.map(m => m.distance || 0));
+}
+
+function getAverageShootingDistance() {
+    const shootMarkers = fieldMarkers.filter(m => m.type === 'shoot');
+    if (shootMarkers.length === 0) return 0;
+    const total = shootMarkers.reduce((sum, m) => sum + (m.distance || 0), 0);
+    return total / shootMarkers.length;
 }
 
 function loadFieldMarkers(markersData) {
@@ -194,3 +225,5 @@ window.getFieldMarkersData = getFieldMarkersData;
 window.loadFieldMarkers = loadFieldMarkers;
 window.clearFieldMarkers = clearFieldMarkers;
 window.drawField = drawField;
+window.getMaxShootingDistance = getMaxShootingDistance;
+window.getAverageShootingDistance = getAverageShootingDistance;

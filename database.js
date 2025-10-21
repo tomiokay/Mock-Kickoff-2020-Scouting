@@ -83,6 +83,9 @@ async function saveToDatabase() {
     }
 
     try {
+        const maxShootDistance = typeof getMaxShootingDistance === 'function' ? getMaxShootingDistance() : 0;
+        const avgShootDistance = typeof getAverageShootingDistance === 'function' ? getAverageShootingDistance() : 0;
+
         const dataToSave = {
             team_number: parseInt(scoutingData.teamNumber),
             match_number: parseInt(scoutingData.matchNumber),
@@ -101,14 +104,19 @@ async function saveToDatabase() {
             teleop_bottom_port: scoutingData.counts.teleopBottomPort,
             teleop_outer_port: scoutingData.counts.teleopOuterPort,
             teleop_inner_port: scoutingData.counts.teleopInnerPort,
-            rotation_control: scoutingData.counts.rotationControl,
-            position_control: scoutingData.counts.positionControl,
+            rotation_control: scoutingData.counts.rotationControl > 0,
+            position_control: scoutingData.counts.positionControl > 0,
             park: scoutingData.counts.park > 0,
             hang: scoutingData.counts.hang > 0,
             level: scoutingData.counts.level > 0,
-            defense: scoutingData.counts.defense,
+            effective_defense: scoutingData.counts.effectiveDefense || 0,
+            defensive_foul: scoutingData.counts.defensiveFoul || 0,
+            pinned: scoutingData.counts.pinned || 0,
             penalty: scoutingData.counts.penalty,
             disabled: scoutingData.counts.disabled,
+            total_defense_time: totalDefenseTime || 0,
+            max_shooting_distance: maxShootDistance,
+            avg_shooting_distance: avgShootDistance,
             notes: scoutingData.notes,
             match_duration: elapsedTime,
             field_markers_json: typeof getFieldMarkersData === 'function' ? JSON.stringify(getFieldMarkersData()) : null
@@ -236,6 +244,7 @@ function updateStatistics(data) {
     const totalMatches = data.length;
     const uniqueTeams = new Set(data.map(m => m.team_number)).size;
 
+    // Basic averages
     const avgAuto = totalMatches > 0
         ? Math.round(data.reduce((sum, m) => sum + (m.auto_score || 0), 0) / totalMatches)
         : 0;
@@ -252,12 +261,63 @@ function updateStatistics(data) {
         ? Math.round(data.reduce((sum, m) => sum + (m.total_score || 0), 0) / totalMatches)
         : 0;
 
+    // Accuracy calculations
+    const autoShots = data.reduce((sum, m) => sum + (m.auto_bottom_port || 0) + (m.auto_outer_port || 0) + (m.auto_inner_port || 0), 0);
+    const autoAttempts = data.reduce((sum, m) => sum + (m.pickup_ball || 0), 0);
+    const autoAccuracy = autoAttempts > 0 ? Math.round((autoShots / autoAttempts) * 100) : 0;
+
+    const teleopShots = data.reduce((sum, m) => sum + (m.teleop_bottom_port || 0) + (m.teleop_outer_port || 0) + (m.teleop_inner_port || 0), 0);
+    const teleopAttempts = data.reduce((sum, m) => sum + (m.pickup_ball || 0), 0);
+    const teleopAccuracy = teleopAttempts > 0 ? Math.round((teleopShots / teleopAttempts) * 100) : 0;
+
+    const totalShots = autoShots + teleopShots;
+    const totalAttempts = autoAttempts + teleopAttempts;
+    const overallAccuracy = totalAttempts > 0 ? Math.round((totalShots / totalAttempts) * 100) : 0;
+
+    // Climb success rate
+    const climbAttempts = data.filter(m => m.hang || m.park).length;
+    const climbSuccess = data.filter(m => m.hang).length;
+    const climbRate = climbAttempts > 0 ? Math.round((climbSuccess / climbAttempts) * 100) : 0;
+
+    // Shooting distance
+    const shootingDistances = data.filter(m => m.max_shooting_distance > 0).map(m => m.max_shooting_distance);
+    const maxShootDistance = shootingDistances.length > 0 ? Math.max(...shootingDistances).toFixed(2) : 0;
+    const avgShootDistance = shootingDistances.length > 0
+        ? (shootingDistances.reduce((sum, d) => sum + d, 0) / shootingDistances.length).toFixed(2)
+        : 0;
+
+    // Defense time
+    const avgDefenseTime = totalMatches > 0
+        ? Math.round(data.reduce((sum, m) => sum + (m.total_defense_time || 0), 0) / totalMatches)
+        : 0;
+
+    // Control wheel rate
+    const controlWheelSuccess = data.filter(m => m.rotation_control || m.position_control).length;
+    const controlWheelRate = totalMatches > 0 ? Math.round((controlWheelSuccess / totalMatches) * 100) : 0;
+
+    // Average balls scored per match
+    const avgBalls = totalMatches > 0
+        ? Math.round(totalShots / totalMatches)
+        : 0;
+
+    // Update basic stats
     document.getElementById('statTotalMatches').textContent = totalMatches;
     document.getElementById('statTotalTeams').textContent = uniqueTeams;
     document.getElementById('statAvgAuto').textContent = avgAuto;
     document.getElementById('statAvgTeleop').textContent = avgTeleop;
     document.getElementById('statAvgEndgame').textContent = avgEndgame;
     document.getElementById('statAvgTotal').textContent = avgTotal;
+
+    // Update detailed analytics
+    document.getElementById('statAutoAccuracy').textContent = autoAccuracy + '%';
+    document.getElementById('statTeleopAccuracy').textContent = teleopAccuracy + '%';
+    document.getElementById('statOverallAccuracy').textContent = overallAccuracy + '%';
+    document.getElementById('statClimbRate').textContent = climbRate + '%';
+    document.getElementById('statMaxShootDistance').textContent = maxShootDistance;
+    document.getElementById('statAvgShootDistance').textContent = avgShootDistance;
+    document.getElementById('statAvgDefenseTime').textContent = avgDefenseTime + 's';
+    document.getElementById('statControlWheelRate').textContent = controlWheelRate + '%';
+    document.getElementById('statAvgBalls').textContent = avgBalls;
 }
 
 // ===============================================
@@ -383,19 +443,59 @@ function viewMatchDetails(matchId) {
             </div>
         </div>
 
-        <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Other</h3>
+        <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">Defense & Other</h3>
         <div class="detail-grid">
             <div class="detail-item">
-                <span class="detail-label">Defense</span>
-                <span class="detail-value">${match.defense}</span>
+                <span class="detail-label">Total Defense Time</span>
+                <span class="detail-value">${match.total_defense_time || 0}s</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Effective Defense</span>
+                <span class="detail-value">${match.effective_defense || 0}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Defensive Fouls</span>
+                <span class="detail-value">${match.defensive_foul || 0}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Pinned Opponent</span>
+                <span class="detail-value">${match.pinned || 0}</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Penalties</span>
-                <span class="detail-value">${match.penalty}</span>
+                <span class="detail-value">${match.penalty || 0}</span>
             </div>
             <div class="detail-item">
-                <span class="detail-label">Disabled</span>
-                <span class="detail-value">${match.disabled}</span>
+                <span class="detail-label">Disabled Times</span>
+                <span class="detail-value">${match.disabled || 0}</span>
+            </div>
+        </div>
+
+        <h3 style="color: #00d4ff; margin: 20px 0 10px 0;">📊 Performance Metrics</h3>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Total Balls Scored</span>
+                <span class="detail-value">${(match.auto_bottom_port || 0) + (match.auto_outer_port || 0) + (match.auto_inner_port || 0) + (match.teleop_bottom_port || 0) + (match.teleop_outer_port || 0) + (match.teleop_inner_port || 0)}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Shooting Accuracy</span>
+                <span class="detail-value">${calculateAccuracy(match)}%</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Max Shooting Distance</span>
+                <span class="detail-value">${(match.max_shooting_distance || 0).toFixed(2)}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Avg Shooting Distance</span>
+                <span class="detail-value">${(match.avg_shooting_distance || 0).toFixed(2)}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Points Per Second</span>
+                <span class="detail-value">${(match.total_score / (match.match_duration || 150)).toFixed(2)}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Contribution Score</span>
+                <span class="detail-value">${calculateContributionScore(match)}</span>
             </div>
         </div>
 
@@ -434,6 +534,27 @@ function viewMatchDetails(matchId) {
     if (match.field_markers_json) {
         setTimeout(() => drawModalFieldMap(match.field_markers_json), 100);
     }
+}
+
+function calculateAccuracy(match) {
+    const totalShots = (match.auto_bottom_port || 0) + (match.auto_outer_port || 0) + (match.auto_inner_port || 0) +
+                       (match.teleop_bottom_port || 0) + (match.teleop_outer_port || 0) + (match.teleop_inner_port || 0);
+    const attempts = match.pickup_ball || 0;
+    if (attempts === 0) return 0;
+    return Math.round((totalShots / attempts) * 100);
+}
+
+function calculateContributionScore(match) {
+    // Weighted scoring: Auto worth more, endgame climb worth more, defense adds value
+    let score = 0;
+    score += (match.auto_score || 0) * 1.5; // Auto is 1.5x valuable
+    score += (match.teleop_score || 0) * 1.0;
+    score += (match.endgame_score || 0) * 1.2; // Endgame is 1.2x valuable
+    score += (match.total_defense_time || 0) * 0.5; // Defense time adds points
+    score += (match.effective_defense || 0) * 3; // Effective defense blocks
+    score -= (match.penalty || 0) * 5; // Penalties reduce score
+    score -= (match.defensive_foul || 0) * 3; // Defensive fouls reduce score
+    return Math.round(score);
 }
 
 function drawModalFieldMap(markersJson) {

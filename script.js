@@ -459,6 +459,9 @@ function endMatch() {
 }
 
 function exportJSON() {
+    const maxShootDistance = typeof getMaxShootingDistance === 'function' ? getMaxShootingDistance() : 0;
+    const avgShootDistance = typeof getAverageShootingDistance === 'function' ? getAverageShootingDistance() : 0;
+
     const dataToExport = {
         matchInfo: {
             teamNumber: scoutingData.teamNumber,
@@ -468,7 +471,9 @@ function exportJSON() {
             scoutName: scoutingData.scoutName,
             startTime: scoutingData.startTime,
             matchDuration: elapsedTime,
-            totalDefenseTime: totalDefenseTime
+            totalDefenseTime: totalDefenseTime,
+            maxShootingDistance: maxShootDistance,
+            avgShootingDistance: avgShootDistance
         },
         scores: scoutingData.scores,
         actions: scoutingData.actions,
