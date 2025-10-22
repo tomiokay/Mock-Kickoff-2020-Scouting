@@ -950,6 +950,11 @@ h1 {
     box-shadow: 0 0 8px #ff6b35;
 }
 
+.defense-marker {
+    background: #9d4edd;
+    box-shadow: 0 0 8px #9d4edd;
+}
+
 .score-marker {
     background: #ffaa00;
     box-shadow: 0 0 8px #ffaa00;
@@ -1588,4 +1593,111 @@ body::before {
 
 .exit-defense-btn:hover {
     background: rgba(0, 212, 255, 0.4) !important;
+}
+
+/* ===============================================
+   CUSTOM NOTIFICATION POPUP
+   =============================================== */
+
+.notification-popup {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none;
+}
+
+.notification-popup.show {
+    top: 30px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid #00d4ff;
+    border-radius: 12px;
+    padding: 20px 25px;
+    box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4);
+    min-width: 300px;
+    max-width: 500px;
+    backdrop-filter: blur(10px);
+}
+
+.notification-icon {
+    font-size: 1.8em;
+    flex-shrink: 0;
+}
+
+.notification-message {
+    color: #ffffff;
+    font-size: 1em;
+    line-height: 1.4;
+    flex: 1;
+}
+
+.notification-close {
+    background: transparent;
+    border: none;
+    color: #00d4ff;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+
+.notification-close:hover {
+    background: rgba(0, 212, 255, 0.2);
+    color: #ff3366;
+    transform: rotate(90deg);
+}
+
+/* Notification types */
+.notification-popup.success .notification-content {
+    border-color: #00ff88;
+    box-shadow: 0 10px 40px rgba(0, 255, 136, 0.4);
+}
+
+.notification-popup.success .notification-icon {
+    color: #00ff88;
+}
+
+.notification-popup.error .notification-content {
+    border-color: #ff3366;
+    box-shadow: 0 10px 40px rgba(255, 51, 102, 0.4);
+}
+
+.notification-popup.error .notification-icon {
+    color: #ff3366;
+}
+
+.notification-popup.warning .notification-content {
+    border-color: #ffaa00;
+    box-shadow: 0 10px 40px rgba(255, 170, 0, 0.4);
+}
+
+.notification-popup.warning .notification-icon {
+    color: #ffaa00;
+}
+
+.notification-popup.info .notification-content {
+    border-color: #00d4ff;
+    box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4);
+}
+
+.notification-popup.info .notification-icon {
+    color: #00d4ff;
 }

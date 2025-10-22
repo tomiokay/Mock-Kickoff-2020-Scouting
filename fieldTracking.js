@@ -13,6 +13,7 @@ let fieldMarkers = [];
 const MARKER_COLORS = {
     pickup: '#00ff88',
     shoot: '#ff6b35',
+    defense: '#9d4edd',
     score: '#ffaa00'
 };
 
@@ -135,7 +136,7 @@ function handleFieldClick(event) {
                     updateBallCountDisplay();
                 }
             } else {
-                alert('⚠️ Robot is at maximum ball capacity (5 balls)!');
+                showPopup('Robot is at maximum ball capacity (5 balls)!', 'warning');
             }
         }
     }
@@ -156,9 +157,26 @@ function drawField() {
         fieldCtx.fillRect(0, 0, fieldCanvas.width, fieldCanvas.height);
     }
 
-    // Draw all markers
-    fieldMarkers.forEach((marker, index) => {
-        drawMarker(marker.x, marker.y, marker.type, index + 1);
+    // Draw all markers with separate counting systems
+    let pickupCount = 0;
+    let shootCount = 0;
+    let defenseCount = 0;
+
+    fieldMarkers.forEach((marker) => {
+        let number;
+        if (marker.type === 'pickup') {
+            pickupCount++;
+            number = pickupCount;
+        } else if (marker.type === 'shoot') {
+            shootCount++;
+            number = shootCount;
+        } else if (marker.type === 'defense') {
+            defenseCount++;
+            number = defenseCount;
+        } else {
+            number = 1; // Default for any other type
+        }
+        drawMarker(marker.x, marker.y, marker.type, number);
     });
 }
 

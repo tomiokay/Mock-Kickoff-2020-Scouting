@@ -76,13 +76,13 @@ function setupNavigationTabs() {
 
 async function saveToDatabase() {
     if (!supabase) {
-        alert('Database not configured. Please set up Supabase in config.js');
+        showPopup('Database not configured. Please set up Supabase in config.js', 'error');
         return;
     }
 
     // Validate that match has data
     if (!scoutingData.teamNumber || !scoutingData.matchNumber) {
-        alert('Please complete match setup before saving');
+        showPopup('Please complete match setup before saving', 'warning');
         return;
     }
 
@@ -133,12 +133,12 @@ async function saveToDatabase() {
 
         if (error) throw error;
 
-        alert('✅ Match data saved to database successfully!');
+        showPopup('Match data saved to database successfully!', 'success');
         console.log('Saved data:', data);
 
     } catch (error) {
         console.error('Error saving to database:', error);
-        alert('❌ Error saving to database: ' + error.message);
+        showPopup('Error saving to database: ' + error.message, 'error');
     }
 }
 
@@ -179,7 +179,7 @@ async function loadDashboardData(filters = {}) {
 
     } catch (error) {
         console.error('Error loading data:', error);
-        alert('Error loading data: ' + error.message);
+        showPopup('Error loading data: ' + error.message, 'error');
     }
 }
 
@@ -638,12 +638,12 @@ async function deleteMatch(matchId) {
 
         if (error) throw error;
 
-        alert('✅ Match deleted successfully');
+        showPopup('Match deleted successfully', 'success');
         loadDashboardData();
 
     } catch (error) {
         console.error('Error deleting match:', error);
-        alert('❌ Error deleting match: ' + error.message);
+        showPopup('Error deleting match: ' + error.message, 'error');
     }
 }
 
@@ -731,7 +731,7 @@ function setupDashboardEventListeners() {
 
 function exportAllDataCSV() {
     if (allMatchData.length === 0) {
-        alert('No data to export');
+        showPopup('No data to export', 'warning');
         return;
     }
 
@@ -752,7 +752,7 @@ function exportAllDataCSV() {
 
 function exportAllDataJSON() {
     if (allMatchData.length === 0) {
-        alert('No data to export');
+        showPopup('No data to export', 'warning');
         return;
     }
 
@@ -770,7 +770,7 @@ async function clearAllData() {
     const confirmed = prompt('⚠️ WARNING: This will delete ALL scouting data from the database!\n\nType "DELETE ALL" to confirm:');
 
     if (confirmed !== 'DELETE ALL') {
-        alert('Cancelled - no data was deleted');
+        showPopup('Cancelled - no data was deleted', 'info');
         return;
     }
 
@@ -782,11 +782,11 @@ async function clearAllData() {
 
         if (error) throw error;
 
-        alert('✅ All data has been deleted');
+        showPopup('All data has been deleted', 'success');
         loadDashboardData();
 
     } catch (error) {
         console.error('Error clearing data:', error);
-        alert('❌ Error clearing data: ' + error.message);
+        showPopup('Error clearing data: ' + error.message, 'error');
     }
 }

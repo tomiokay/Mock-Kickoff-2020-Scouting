@@ -242,6 +242,9 @@
                         <button class="mode-btn" data-mode="shoot">
                             🎯 Shooting Position
                         </button>
+                        <button class="mode-btn" data-mode="defense">
+                            🛡️ Defense Region
+                        </button>
                         <button class="mode-btn clear-mode" id="clearLastMarker">
                             ↶ Undo Last
                         </button>
@@ -255,6 +258,7 @@
                         <div class="field-legend">
                             <span class="legend-item"><span class="marker pickup-marker"></span> Ground Pickup</span>
                             <span class="legend-item"><span class="marker shoot-marker"></span> Shooting Position</span>
+                            <span class="legend-item"><span class="marker defense-marker"></span> Defense Region</span>
                         </div>
                     </div>
                 </div>
@@ -438,7 +442,17 @@
         <!-- End Dashboard View -->
     </div>
 
+    <!-- Custom Notification Popup -->
+    <div class="notification-popup" id="notificationPopup">
+        <div class="notification-content">
+            <span class="notification-icon" id="notificationIcon"></span>
+            <span class="notification-message" id="notificationMessage"></span>
+            <button class="notification-close" id="notificationClose">&times;</button>
+        </div>
+    </div>
+
     <script src="config.js"></script>
+    <script src="popup.js"></script>
     <script src="fieldTracking.js"></script>
     <script src="database.js"></script>
     <script src="script.js"></script>

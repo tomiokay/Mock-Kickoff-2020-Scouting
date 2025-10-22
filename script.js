@@ -167,19 +167,19 @@ function setupEventListeners() {
 function startMatch() {
     // Validate inputs
     if (!teamNumberInput.value) {
-        alert('Please enter a team number');
+        showPopup('Please enter a team number', 'warning');
         return;
     }
     if (!matchNumberInput.value) {
-        alert('Please enter a match number');
+        showPopup('Please enter a match number', 'warning');
         return;
     }
     if (!scoutingData.allianceColor) {
-        alert('Please select an alliance color');
+        showPopup('Please select an alliance color', 'warning');
         return;
     }
     if (!scoutingData.startingPosition) {
-        alert('Please select a starting position');
+        showPopup('Please select a starting position', 'warning');
         return;
     }
 
@@ -261,13 +261,13 @@ function recordAction(action) {
 
     // Check if trying to shoot without balls
     if (shootingActions.includes(action) && currentBallCount === 0) {
-        alert('⚠️ No balls available! Pick up a ball first.');
+        showPopup('No balls available! Pick up a ball first.', 'warning');
         return;
     }
 
     // Check if trying to miss without balls
     if (action === 'missBall' && currentBallCount === 0) {
-        alert('⚠️ No balls available! Pick up a ball first.');
+        showPopup('No balls available! Pick up a ball first.', 'warning');
         return;
     }
 
@@ -277,7 +277,7 @@ function recordAction(action) {
             currentBallCount++;
             updateBallCountDisplay();
         } else {
-            alert('⚠️ Robot is at maximum ball capacity (5 balls)!');
+            showPopup('Robot is at maximum ball capacity (5 balls)!', 'warning');
             return;
         }
     } else if (shootingActions.includes(action)) {

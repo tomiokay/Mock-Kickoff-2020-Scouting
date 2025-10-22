@@ -53,9 +53,14 @@ Follow these steps to set up your Supabase database for the scouting app.
 - `park` (bool)
 - `hang` (bool)
 - `level` (bool)
-- `defense` (int4)
+- `effective_defense` (int4)
+- `defensive_foul` (int4)
+- `pinned` (int4)
 - `penalty` (int4)
 - `disabled` (int4)
+- `total_defense_time` (int4)
+- `max_shooting_distance` (float8)
+- `avg_shooting_distance` (float8)
 - `notes` (text)
 - `match_duration` (int4)
 - `field_markers_json` (text) - Stores field tracking data
@@ -149,9 +154,14 @@ CREATE TABLE match_data (
   park BOOLEAN,
   hang BOOLEAN,
   level BOOLEAN,
-  defense INTEGER,
+  effective_defense INTEGER,
+  defensive_foul INTEGER,
+  pinned INTEGER,
   penalty INTEGER,
   disabled INTEGER,
+  total_defense_time INTEGER,
+  max_shooting_distance DOUBLE PRECISION,
+  avg_shooting_distance DOUBLE PRECISION,
   notes TEXT,
   match_duration INTEGER,
   field_markers_json TEXT
