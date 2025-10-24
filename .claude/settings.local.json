@@ -18,7 +18,8 @@
       "Bash(findstr:*)",
       "Bash(timeout 3 bash -c \"sleep 2 && curl -I http://localhost:3000\")",
       "Bash(taskkill:*)",
-      "Read(//c/**)"
+      "Read(//c/**)",
+      "Bash(timeout 3 bash:*)"
     ],
     "deny": [],
     "ask": []
