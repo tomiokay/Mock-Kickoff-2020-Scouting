@@ -266,17 +266,20 @@ function updateStatistics(data) {
         : 0;
 
     // Accuracy calculations
+    // Robots typically start with 3 pre-loaded balls for auto
+    const STARTING_BALLS = 3;
+
     const autoShots = data.reduce((sum, m) => sum + (m.auto_bottom_port || 0) + (m.auto_outer_port || 0) + (m.auto_inner_port || 0), 0);
-    const autoAttempts = data.reduce((sum, m) => sum + (m.pickup_ball || 0), 0);
+    const autoAttempts = totalMatches * STARTING_BALLS; // Each match starts with 3 balls
     const autoAccuracy = autoAttempts > 0 ? Math.round((autoShots / autoAttempts) * 100) : 0;
 
     const teleopShots = data.reduce((sum, m) => sum + (m.teleop_bottom_port || 0) + (m.teleop_outer_port || 0) + (m.teleop_inner_port || 0), 0);
-    const teleopAttempts = data.reduce((sum, m) => sum + (m.pickup_ball || 0), 0);
-    const teleopAccuracy = teleopAttempts > 0 ? Math.round((teleopShots / teleopAttempts) * 100) : 0;
+    const teleopBallsPickedUp = data.reduce((sum, m) => sum + (m.pickup_ball || 0), 0);
+    const teleopAccuracy = teleopBallsPickedUp > 0 ? Math.round((teleopShots / teleopBallsPickedUp) * 100) : 0;
 
     const totalShots = autoShots + teleopShots;
-    const totalAttempts = autoAttempts + teleopAttempts;
-    const overallAccuracy = totalAttempts > 0 ? Math.round((totalShots / totalAttempts) * 100) : 0;
+    const totalBallsAvailable = autoAttempts + teleopBallsPickedUp; // Starting balls + picked up balls
+    const overallAccuracy = totalBallsAvailable > 0 ? Math.round((totalShots / totalBallsAvailable) * 100) : 0;
 
     // Climb success rate
     const climbAttempts = data.filter(m => m.hang || m.park).length;
@@ -541,11 +544,12 @@ function viewMatchDetails(matchId) {
 }
 
 function calculateAccuracy(match) {
+    const STARTING_BALLS = 3;
     const totalShots = (match.auto_bottom_port || 0) + (match.auto_outer_port || 0) + (match.auto_inner_port || 0) +
                        (match.teleop_bottom_port || 0) + (match.teleop_outer_port || 0) + (match.teleop_inner_port || 0);
-    const attempts = match.pickup_ball || 0;
-    if (attempts === 0) return 0;
-    return Math.round((totalShots / attempts) * 100);
+    const ballsAvailable = STARTING_BALLS + (match.pickup_ball || 0);
+    if (ballsAvailable === 0) return 0;
+    return Math.round((totalShots / ballsAvailable) * 100);
 }
 
 function calculateContributionScore(match) {
