@@ -1,6 +1,3 @@
-# Supabase credentials - DO NOT COMMIT
-config.js
-
 # Node modules
 node_modules/
 
